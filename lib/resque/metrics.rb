@@ -3,6 +3,8 @@ require 'resque/metrics/backends'
 
 module Resque
   module Metrics
+    @_use_multi = nil
+    @callbacks  = nil
 
     def self.extended(klass)
       klass.extend(Hooks)
@@ -143,7 +145,7 @@ module Resque
       increment_metric "enqueue_count"
       increment_metric "enqueue_count:job:#{job_class}"
       increment_metric "enqueue_count:queue:#{queue}"
-      run_first_backend(:register_job, job_class)
+      run_first_backend(:register_job, job_class.to_s)
 
       size = Resque.encode(args).length
       multi do

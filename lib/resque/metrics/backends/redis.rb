@@ -1,3 +1,5 @@
+require 'redis'
+
 module Resque
   module Metrics
     module Backends
@@ -22,7 +24,9 @@ module Resque
         end
 
         def get_metric(metric)
-          redis.get("_metrics_:#{metric}").to_i
+          metric_value = redis.mget("_metrics_:#{metric}").first
+
+          metric_value.to_i
         end
 
         def register_job(job)

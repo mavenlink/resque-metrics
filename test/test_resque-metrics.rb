@@ -1,8 +1,9 @@
 require 'helper'
+require 'pry'
 
 class TestResqueMetrics < MiniTest::Unit::TestCase
   def setup
-    Resque.redis.flushall
+    Resque.redis.clear
 
     Resque.before_first_fork = nil
     Resque.before_fork = nil
@@ -15,7 +16,7 @@ class TestResqueMetrics < MiniTest::Unit::TestCase
     end
 
     @num_failed_jobs = 2
-    @num_failed_jobs.times do 
+    @num_failed_jobs.times do
       fail_job
     end
   end
@@ -68,10 +69,12 @@ class TestResqueMetrics < MiniTest::Unit::TestCase
   def test_should_call_job_complete_callbacks
     recorded = []
     recorded_count = 0
+
     Resque::Metrics.on_job_complete do |klass, queue, time|
-      recorded << {:klass => klass, :queue => queue, :time => time }
+      recorded << { klass: klass, queue: queue, time: time }
     end
-    Resque::Metrics.on_job_complete do |klass, queue, time|
+
+    Resque::Metrics.on_job_complete do
       recorded_count += 1
     end
 
@@ -88,10 +91,12 @@ class TestResqueMetrics < MiniTest::Unit::TestCase
   def test_should_call_job_failure_callbacks
     recorded = []
     recorded_count = 0
+
     Resque::Metrics.on_job_failure do |klass, queue|
-      recorded << {:klass => klass, :queue => queue}
+      recorded << { klass: klass, queue: queue }
     end
-    Resque::Metrics.on_job_failure do |klass, queue|
+
+    Resque::Metrics.on_job_failure do
       recorded_count += 1
     end
 
@@ -116,5 +121,4 @@ class TestResqueMetrics < MiniTest::Unit::TestCase
     Resque.enqueue(FailureJob)
     @worker.work(0)
   end
-
 end
